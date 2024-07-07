@@ -39,3 +39,21 @@ print(weather_data_tbl)
 
 ```
 
+
+
+
+
+
+
+
+```{r}
+library(httr)
+library(jsonlite)
+
+
+
+
+
+
+```
+
