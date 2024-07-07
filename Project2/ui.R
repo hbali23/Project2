@@ -1,7 +1,7 @@
 #dont forget to comment
 
 # Set working directory to the location of your Shiny app files
-# setwd("/Users/hananali/Desktop/Project2")
+setwd("/Users/hananali/Desktop/Project2")
 
 library(shiny)
 
