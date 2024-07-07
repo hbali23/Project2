@@ -4,6 +4,7 @@ library(shiny)
 library(httr)
 library(jsonlite)
 library(dplyr)
+library(tibble)  # Load tibble package for tbl_df function
 
 BASE_URL <- "https://www.fueleconomy.gov/ws/rest"
 
@@ -11,42 +12,42 @@ get_makes_by_year <- function(year) {
   url <- paste0(BASE_URL, "/vehicle/menu/make?year=", year)
   response <- GET(url)
   data <- fromJSON(content(response, "text"))
-  return(data$menuItem)
+  return(as_tibble(as.data.frame(data$menuItem)))  # Convert to tbl_df
 }
 
 get_models_by_make <- function(make) {
   url <- paste0(BASE_URL, "/vehicle/menu/model?make=", make)
   response <- GET(url)
   data <- fromJSON(content(response, "text"))
-  return(data$menuItem)
+  return(as_tibble(as.data.frame(data$menuItem)))  # Convert to tbl_df
 }
 
 get_options_by_make_model_year <- function(make, model, year) {
   url <- paste0(BASE_URL, "/vehicle/menu/options?year=", year, "&make=", make, "&model=", model)
   response <- GET(url)
   data <- fromJSON(content(response, "text"))
-  return(data$menuItem)
+  return(as_tibble(as.data.frame(data$menuItem)))  # Convert to tbl_df
 }
 
 get_vehicle_by_id <- function(vehicle_id) {
   url <- paste0(BASE_URL, "/vehicle/id/", vehicle_id)
   response <- GET(url)
   data <- fromJSON(content(response, "text"))
-  return(data)
+  return(as_tibble(as.data.frame(data)))  # Convert to tbl_df
 }
 
 get_vehicle_by_ymm <- function(year, make, model) {
   url <- paste0(BASE_URL, "/vehicle/", year, "/", make, "/", model)
   response <- GET(url)
   data <- fromJSON(content(response, "text"))
-  return(data)
+  return(as_tibble(as.data.frame(data)))  # Convert to tbl_df
 }
 
 get_fuel_economy_by_ymm <- function(year, make, model) {
   url <- paste0(BASE_URL, "/ympg/shared/ympgVehicle?", "year=", year, "&make=", make, "&model=", model)
   response <- GET(url)
   data <- fromJSON(content(response, "text"))
-  return(data)
+  return(as_tibble(as.data.frame(data)))  # Convert to tbl_df
 }
 
 shinyServer(function(input, output, session) {

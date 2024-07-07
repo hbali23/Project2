@@ -7,35 +7,68 @@ output: html_document
 
 ## Load Packages
 Before reading and summarizing the data, some necessary packages must be loaded.
+
 ```{r}
-# Install and load the required packages
+library(shiny)
 library(httr)
 library(jsonlite)
 library(dplyr)
+library(tibble)  # Load tibble package for tbl_df function
 
-# Define the function to get API info and return a tibble
-API_weather_info <- function(latitude, longitude) {
-  params <- list(
-    latitude = latitude,
-    longitude = longitude,
-    current = "temperature_2m,wind_speed_10m",
-    hourly = "temperature_2m,relative_humidity_2m,wind_speed_10m",
-    timezone = "auto"
-  )
-  base <- "https://api.open-meteo.com/v1/forecast"
-  get_info <- GET(base, query = params)
-  get_info_text <- content(get_info, as = "text", encoding = "UTF-8")
-  get_info_json <- fromJSON(get_info_text, flatten = TRUE)
+BASE_URL <- "https://www.fueleconomy.gov/ws/rest"
+
+get_makes_by_year <- function(year) {
+  get_info <- paste0(BASE_URL, "/vehicle/menu/make?year=", year)
+  get_info_text <- content(get_info, as = "text")
+  get_info_json <- fromJSON(get_info_text, flatten=TRUE)
   get_info_df <- as.data.frame(get_info_json)
-  get_info_tbl <- as_tibble(get_info_df)
-  return(get_info_tbl)
+  get_info_tbl <- tbl_df(get_info_df)
+  return(get_info_tbl)  # Convert to tbl_df
+}
+```
+
+
+```{r}
+get_models_by_make <- function(make) {
+  url <- paste0(BASE_URL, "/vehicle/menu/model?make=", make)
+  response <- GET(url)
+  data <- fromJSON(content(response, "text"))
+  return(tbl_df(as.data.frame(data$menuItem)))  # Convert to tbl_df
 }
 
-# Example usage: Fetch weather data for Berlin, Germany
-weather_data_tbl <- API_weather_info(52.52, 13.41)
+get_options_by_make_model_year <- function(make, model, year) {
+  url <- paste0(BASE_URL, "/vehicle/menu/options?year=", year, "&make=", make, "&model=", model)
+  response <- GET(url)
+  data <- fromJSON(content(response, "text"))
+  return(tbl_df(as.data.frame(data$menuItem)))  # Convert to tbl_df
+}
 
-# Print the resulting tibble
-print(weather_data_tbl)
+get_vehicle_by_id <- function(vehicle_id) {
+  url <- paste0(BASE_URL, "/vehicle/id/", vehicle_id)
+  response <- GET(url)
+  data <- fromJSON(content(response, "text"))
+  return(tbl_df(as.data.frame(data)))  # Convert to tbl_df
+}
+
+get_vehicle_by_ymm <- function(year, make, model) {
+  url <- paste0(BASE_URL, "/vehicle/", year, "/", make, "/", model)
+  response <- GET(url)
+  data <- fromJSON(content(response, "text"))
+  return(tbl_df(as.data.frame(data)))  # Convert to tbl_df
+}
+
+get_fuel_economy_by_ymm <- function(year, make, model) {
+  url <- paste0(BASE_URL, "/ympg/shared/ympgVehicle?", "year=", year, "&make=", make, "&model=", model)
+  response <- GET(url)
+  data <- fromJSON(content(response, "text"))
+  return(tbl_df(as.data.frame(data)))  # Convert to tbl_df
+}
+
+
+
+
+
+
 
 ```
 
@@ -43,17 +76,26 @@ print(weather_data_tbl)
 
 
 
-
-
-
 ```{r}
-library(httr)
-library(jsonlite)
+BASE_URL <- "https://www.fueleconomy.gov/ws/rest"
+get_info <- httr::GET("https://www.fueleconomy.gov/ws/rest/vehicle/menu/make?year=")
+get_info_json <- fromJSON(rawToChar(get_info$content))
+get_info_df <- as_tibble(get_info_json$data)
+print(colnames(get_info_df))
 
 
 
 
-
-
+##why can't the above print colnames like below
+URL_team_stats <-
+  "https://api.nhle.com/stats/rest/en/team/summary?sort=wins&cayenneExp=seasonId=20232024%20and%20gameTypeId=2"
+team_stats_return <- httr::GET(URL_team_stats)
+parsed_team_stats <- fromJSON(rawToChar(team_stats_return$content))
+team_stats <- as_tibble(parsed_team_stats$data)
+team_stats |>
+  select(everything())
+team_stats |>
+  select(teamId, teamFullName, everything())
+print(colnames(team_stats))
 ```
 
