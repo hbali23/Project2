@@ -8,6 +8,10 @@ library(tibble)  # Load tibble package for tbl_df function
 
 BASE_URL <- "https://www.fueleconomy.gov/ws/rest"
 
+####### step1: find out col names for these and parse them using if else statements
+####### steo2: figure out why dropdown for make isn't working (most likely cause of data)
+####### step3: make final tab and analysis pretty things up
+
 get_makes_by_year <- function(year) {
   url <- paste0(BASE_URL, "/vehicle/menu/make?year=", year)
   response <- GET(url)
