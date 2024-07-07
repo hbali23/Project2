@@ -1,4 +1,4 @@
-# Project2
+# Project 2
 
 # Description
 Brief description of the app and its purpose.
