@@ -122,16 +122,3 @@ get_vehicle_options <- function(year, make, model) {
 }
 
 
-
-
-
-##figure out why the download csv file is not workign first
-##second create simple contingency tables
-## metric below and plots
-
-##metrics i want is comparison of yousavespend attribute over cars with fueltype1 vs fueltype2 using first function
-## do you really save by having an electric car
-
-##create contingency tables and work on dashboard itself now and to utilize the functions created
-##try to make dashboard as dashy as possible and go over project description so that we do not have to 
-##create fifth and sixth functions last 

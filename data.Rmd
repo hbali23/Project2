@@ -8,6 +8,25 @@ output: html_document
 ## Load Packages
 Before reading and summarizing the data, some necessary packages must be loaded.
 
+
+
+
+
+##figure out why the download csv file is not workign first
+##second create simple contingency tables
+## metric below and plots
+
+##metrics i want is comparison of yousavespend attribute over cars with fueltype1 vs fueltype2 using first function
+## do you really save by having an electric car
+
+##create contingency tables and work on dashboard itself now and to utilize the functions created
+##try to make dashboard as dashy as possible and go over project description so that we do not have to 
+##create fifth and sixth functions last 
+
+
+
+
+
 ```{r}
 # get information about businesses
 api_info <- httr::GET("https://www.fueleconomy.gov/ws/rest/vehicle/menu/year") #this url has to follow resources manual on the website  
