@@ -10,7 +10,7 @@ Before reading and summarizing the data, some necessary packages must be loaded.
 
 ```{r}
 # get information about businesses
-api_info <- httr::GET("https://www.fueleconomy.gov/ws/rest/vehicle/31873") #this url has to follow resources manual on the website  
+api_info <- httr::GET("https://www.fueleconomy.gov/ws/rest/vehicle/menu/year") #this url has to follow resources manual on the website  
 str(api_info, max.level = 1)
 
 library(tidyverse)
@@ -18,7 +18,7 @@ api_char <- base::rawToChar(api_info$content)
 api_JSON <- jsonlite::fromJSON(api_char, flatten=TRUE) 
 parsed <- fromJSON(rawToChar(api_info$content))  #click on parsed and click on drop down for item that has data in (this one is named articles) and there you will see the names of the other variables but i think they all start with id and name
 str(parsed)
-article <- as_tibble(parsed$articles) #see articles is selected here and is now a dataframe
+article <- as_tibble(parsed$menuItem) #see articles is selected here and is now a dataframe
 
 #removed source from first two columns id and name that had source$ attached to it
 article <- article |> mutate(id=article$source$id,
@@ -26,119 +26,3 @@ name=article$source$name) |> select(id, name, everything(), -source)
 article
 
 ```
-```{r}
-# Load necessary libraries
-library(httr)
-library(jsonlite)
-library(tibble)
-
-# Function to fetch and parse vehicle data
-fetch_vehicle_data <- function(vehicle_id) {
-  # Base URL for the Fuel Economy API
-  BASE_URL <- "https://www.fueleconomy.gov/ws/rest/vehicle/"
-  
-  # Construct the full URL for the API call
-  full_url <- paste0(BASE_URL, vehicle_id)
-  
-  # Make the API call
-  api_call <- httr::GET(full_url)
-  
-  # Check the status code of the response
-  if (api_call$status_code == 200) {
-    # Convert raw content to character
-    api_char <- rawToChar(api_call$content)
-    
-    # Print the response to inspect it
-    cat("API Response:\n", api_char, "\n\n")
-    
-    # Attempt to parse as JSON only if it's in JSON format
-    try({
-      api_JSON <- fromJSON(api_char, flatten = TRUE)
-      # Convert JSON to dataframe or tibble
-      api_df <- as_tibble(api_JSON)
-      
-      # Return the dataframe or tibble
-      return(api_df)
-    }, silent = TRUE)
-  } else {
-    cat("Failed to retrieve data. Status code:", api_call$status_code, "\n")
-    return(NULL)
-  }
-}
-
-# Example usage of the function
-vehicle_id <- 31873
-vehicle_data <- fetch_vehicle_data(vehicle_id)
-
-# Print the vehicle data
-print(vehicle_data)
-
-```
-
-
-
-
-```{r}
-library(httr)
-library(jsonlite)
-library(dplyr)
-
-# Function to get a specific vehicle record
-get_vehicle_record <- function(vehicle_id) {
-  url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/", vehicle_id)
-  response <- GET(url, accept("application/json"))
-  content <- fromJSON(content(response, "text"), flatten = TRUE)
-  return(as_tibble(content))
-}
-
-# Function to get emission records for a specific vehicle
-get_emission_records <- function(vehicle_id) {
-  url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/emissions/", vehicle_id)
-  response <- GET(url, accept("application/json"))
-  content <- fromJSON(content(response, "text"), flatten = TRUE)
-  return(as_tibble(content))
-}
-
-# Function to get current fuel prices
-get_fuel_prices <- function() {
-  url <- "https://www.fueleconomy.gov/ws/rest/fuelprices"
-  response <- GET(url, accept("application/json"))
-  content <- fromJSON(content(response, "text"), flatten = TRUE)
-  return(as_tibble(content))
-}
-
-# Function to get a summary of shared user MPG data for a specific vehicle
-get_shared_mpg_summary <- function(vehicle_id) {
-  url <- paste0("https://www.fueleconomy.gov/ws/rest/ympg/shared/ympgVehicle/", vehicle_id)
-  response <- GET(url, accept("application/json"))
-  content <- fromJSON(content(response, "text"), flatten = TRUE)
-  return(as_tibble(content))
-}
-
-# Function to get user MPG records for a specific vehicle
-get_user_mpg_records <- function(vehicle_id) {
-  url <- paste0("https://www.fueleconomy.gov/ws/rest/ympg/shared/ympgDriverVehicle/", vehicle_id)
-  response <- GET(url, accept("application/json"))
-  content <- fromJSON(content(response, "text"), flatten = TRUE)
-  return(as_tibble(content))
-}
-
-# Function to get vehicle menu options for a specific year, make, and model
-get_vehicle_menu_options <- function(year, make, model) {
-  url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/menu/options?year=", year, "&make=", make, "&model=", model)
-  response <- GET(url, accept("application/json"))
-  content <- fromJSON(content(response, "text"), flatten = TRUE)
-  return(as_tibble(content))
-}
-
-# Example usage:
-# vehicle_record <- get_vehicle_record(31873)
-# emission_records <- get_emission_records(31873)
-# fuel_prices <- get_fuel_prices()
-# shared_mpg_summary <- get_shared_mpg_summary(26425)
-# user_mpg_records <- get_user_mpg_records(26425)
-# vehicle_menu_options <- get_vehicle_menu_options(2012, "Honda", "Fit")
-
-```
-
-
