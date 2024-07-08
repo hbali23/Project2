@@ -1,50 +1,69 @@
 library(shiny)
 library(shinydashboard)
 
+# Define UI
 ui <- dashboardPage(
-  dashboardHeader(title = "Vehicle Data App"),
+  dashboardHeader(title = "Vehicle Data Explorer"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("About", tabName = "about", icon = icon("info-circle")),
-      menuItem("Data Download", tabName = "data_download", icon = icon("download")),
-      menuItem("Data Exploration", tabName = "data_exploration", icon = icon("chart-bar"))
+      menuItem("About", tabName = "about"),
+      menuItem("Data Download", tabName = "data_download"),
+      menuItem("Data Exploration", tabName = "data_exploration")
     )
   ),
   dashboardBody(
     tabItems(
+      # About tab content
       tabItem(tabName = "about",
+              h2("About"),
               fluidRow(
-                box(width = 12, title = "About This App", status = "primary", solidHeader = TRUE,
-                    p("This app provides access to vehicle data and fuel economy information."),
-                    p("Data Source: ", a(href = "https://www.fueleconomy.gov/", "FuelEconomy.gov")),
-                    p("Purpose of each tab:"),
-                    p("1. About: Information about the app."),
-                    p("2. Data Download: Query the API and download data."),
-                    p("3. Data Exploration: Visualize and analyze the data."),
-                    img(src = "Seal_of_the_United_States_Department_of_Energy.png", height = 100, width = 100)
+                column(6,
+                       tags$p("This app provides access to vehicle data from FuelEconomy.gov."),
+                       tags$p("Data sources include vehicle records, emissions records, and fuel prices."),
+                       tags$p("Each tab serves a different purpose in exploring and downloading this data.")
+                ),
+                column(6,
+                       tags$img(src = "Seal_of_the_United_States_Department_of_Energy.png", height = 100, width = 100)
                 )
-              )),
+              )
+      ),
+      
+      # Data Download tab content
       tabItem(tabName = "data_download",
+              h2("Data Download"),
               fluidRow(
-                box(width = 12, title = "Data Download", status = "primary", solidHeader = TRUE,
-                    textInput("vehicle_id", "Enter Vehicle ID", value = "31873"),
-                    actionButton("download_data", "Download Data"),
-                    DTOutput("data_table"),
-                    downloadButton("download_csv", "Download CSV")
+                column(4,
+                       selectInput("download_function",
+                                   "Select Function:",
+                                   choices = c("Vehicle Record", "Emission Records", "Fuel Prices", "Vehicle Options"),
+                                   selected = "Vehicle Record"),
+                       uiOutput("year_input"),
+                       uiOutput("make_input"),
+                       uiOutput("model_input"),
+                       actionButton("submit_download", "Download Data")
+                ),
+                column(8,
+                       tableOutput("downloaded_data"),
+                       downloadButton("download_csv", "Download CSV")
                 )
-              )),
+              )
+      ),
+      
+      # Data Exploration tab content
       tabItem(tabName = "data_exploration",
+              h2("Data Exploration"),
               fluidRow(
-                box(width = 12, title = "Data Exploration", status = "primary", solidHeader = TRUE,
-                    selectInput("plot_var", "Choose a variable to plot", choices = NULL),
-                    selectInput("summary_var", "Choose a variable for summary", choices = NULL),
-                    selectInput("plot_type", "Choose plot type", choices = c("Histogram", "Boxplot", "Scatterplot")),
-                    actionButton("plot_data", "Plot Data"),
-                    plotOutput("plot"),
-                    DTOutput("contingency_table"),
-                    verbatimTextOutput("summary")
+                column(4,
+                       selectInput("explore_function",
+                                   "Select Function:",
+                                   choices = c("Vehicle Record", "Emission Records"),
+                                   selected = "Vehicle Record")
+                ),
+                column(8,
+                       plotOutput("exploration_plot")
                 )
-              ))
+              )
+      )
     )
   )
 )
