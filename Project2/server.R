@@ -1,134 +1,116 @@
-#dont forget to comment
-
 library(shiny)
 library(httr)
 library(jsonlite)
 library(dplyr)
-library(tibble)  # Load tibble package for tbl_df function
+library(ggplot2)
+library(DT)
 
-BASE_URL <- "https://www.fueleconomy.gov/ws/rest"
-
-####### step1: find out col names for these and parse them using if else statements
-####### steo2: figure out why dropdown for make isn't working (most likely cause of data)
-####### step3: make final tab and analysis pretty things up
-
-get_makes_by_year <- function(year) {
-  url <- paste0(BASE_URL, "/vehicle/menu/make?year=", year)
-  response <- GET(url)
-  data <- fromJSON(content(response, "text"))
-  return(as_tibble(as.data.frame(data$menuItem)))  # Convert to tbl_df
+# API querying functions
+get_vehicle_record <- function(vehicle_id) {
+  url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/", vehicle_id)
+  response <- GET(url, accept("application/json"))
+  content <- fromJSON(content(response, "text"), flatten = TRUE)
+  return(as_tibble(content))
 }
 
-get_models_by_make <- function(make) {
-  url <- paste0(BASE_URL, "/vehicle/menu/model?make=", make)
-  response <- GET(url)
-  data <- fromJSON(content(response, "text"))
-  return(as_tibble(as.data.frame(data$menuItem)))  # Convert to tbl_df
+get_emission_records <- function(vehicle_id) {
+  url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/emissions/", vehicle_id)
+  response <- GET(url, accept("application/json"))
+  content <- fromJSON(content(response, "text"), flatten = TRUE)
+  return(as_tibble(content))
 }
 
-get_options_by_make_model_year <- function(make, model, year) {
-  url <- paste0(BASE_URL, "/vehicle/menu/options?year=", year, "&make=", make, "&model=", model)
-  response <- GET(url)
-  data <- fromJSON(content(response, "text"))
-  return(as_tibble(as.data.frame(data$menuItem)))  # Convert to tbl_df
+get_fuel_prices <- function() {
+  url <- "https://www.fueleconomy.gov/ws/rest/fuelprices"
+  response <- GET(url, accept("application/json"))
+  content <- fromJSON(content(response, "text"), flatten = TRUE)
+  return(as_tibble(content))
 }
 
-get_vehicle_by_id <- function(vehicle_id) {
-  url <- paste0(BASE_URL, "/vehicle/id/", vehicle_id)
-  response <- GET(url)
-  data <- fromJSON(content(response, "text"))
-  return(as_tibble(as.data.frame(data)))  # Convert to tbl_df
+get_shared_mpg_summary <- function(vehicle_id) {
+  url <- paste0("https://www.fueleconomy.gov/ws/rest/ympg/shared/ympgVehicle/", vehicle_id)
+  response <- GET(url, accept("application/json"))
+  content <- fromJSON(content(response, "text"), flatten = TRUE)
+  return(as_tibble(content))
 }
 
-get_vehicle_by_ymm <- function(year, make, model) {
-  url <- paste0(BASE_URL, "/vehicle/", year, "/", make, "/", model)
-  response <- GET(url)
-  data <- fromJSON(content(response, "text"))
-  return(as_tibble(as.data.frame(data)))  # Convert to tbl_df
+get_user_mpg_records <- function(vehicle_id) {
+  url <- paste0("https://www.fueleconomy.gov/ws/rest/ympg/shared/ympgDriverVehicle/", vehicle_id)
+  response <- GET(url, accept("application/json"))
+  content <- fromJSON(content(response, "text"), flatten = TRUE)
+  return(as_tibble(content))
 }
 
-get_fuel_economy_by_ymm <- function(year, make, model) {
-  url <- paste0(BASE_URL, "/ympg/shared/ympgVehicle?", "year=", year, "&make=", make, "&model=", model)
-  response <- GET(url)
-  data <- fromJSON(content(response, "text"))
-  return(as_tibble(as.data.frame(data)))  # Convert to tbl_df
+get_vehicle_menu_options <- function(year, make, model) {
+  url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/menu/options?year=", year, "&make=", make, "&model=", model)
+  response <- GET(url, accept("application/json"))
+  content <- fromJSON(content(response, "text"), flatten = TRUE)
+  return(as_tibble(content))
 }
 
-shinyServer(function(input, output, session) {
+# Server
+server <- function(input, output, session) {
   
-  observeEvent(input$getMakes, {
-    updateSelectInput(session, "make", choices = get_makes_by_year(input$year))
-  })
+  # Reactive values to store data
+  data <- reactiveVal()
   
-  observeEvent(input$getModels, {
-    updateSelectInput(session, "model", choices = get_models_by_make(input$make))
-  })
-  
-  observeEvent(input$getOptions, {
-    output$apiData <- renderTable({
-      get_options_by_make_model_year(input$make, input$model, input$year)
+  # Download data
+  observeEvent(input$download_data, {
+    vehicle_id <- input$vehicle_id
+    vehicle_data <- get_vehicle_record(vehicle_id)
+    data(vehicle_data)
+    output$data_table <- renderDT({
+      datatable(vehicle_data)
     })
   })
   
-  observeEvent(input$getVehicleById, {
-    output$apiData <- renderTable({
-      get_vehicle_by_id(input$vehicleId)
-    })
-  })
-  
-  observeEvent(input$getVehicleByYMM, {
-    output$apiData <- renderTable({
-      get_vehicle_by_ymm(input$year, input$make, input$model)
-    })
-  })
-  
-  observeEvent(input$getFuelEconomyByYMM, {
-    output$apiData <- renderTable({
-      get_fuel_economy_by_ymm(input$year, input$make, input$model)
-    })
-  })
-  
-  output$dataTable <- renderTable({
-    data.frame(
-      Year = input$year,
-      Make = input$make,
-      Model = input$model
-    )
-  })
-  
-  observe({
-    updateSelectInput(session, "year", choices = as.character(2000:2024))
-    updateSelectInput(session, "downloadYear", choices = as.character(2000:2024))
-  })
-  
-  # Data Download Tab
-  observeEvent(input$downloadGetMakes, {
-    updateSelectInput(session, "downloadMake", choices = get_makes_by_year(input$downloadYear))
-  })
-  
-  observeEvent(input$downloadGetModels, {
-    updateSelectInput(session, "downloadModel", choices = get_models_by_make(input$downloadMake))
-  })
-  
-  observeEvent(input$downloadGetData, {
-    output$downloadDataTable <- renderTable({
-      get_vehicle_by_ymm(input$downloadYear, input$downloadMake, input$downloadModel)
-    })
-    
-    output$downloadColumns <- renderUI({
-      data <- get_vehicle_by_ymm(input$downloadYear, input$downloadMake, input$downloadModel)
-      checkboxGroupInput("selectedColumns", "Select Columns:", choices = names(data))
-    })
-  })
-  
-  output$downloadData <- downloadHandler(
-    filename = function() {
-      paste("fuel_economy_data_", Sys.Date(), ".csv", sep="")
-    },
+  # Download CSV
+  output$download_csv <- downloadHandler(
+    filename = function() { paste("vehicle_data_", Sys.Date(), ".csv", sep = "") },
     content = function(file) {
-      data <- get_vehicle_by_ymm(input$downloadYear, input$downloadMake, input$downloadModel)
-      selectedData <- data[, input$selectedColumns, drop=FALSE]
-      write.csv(selectedData, file)
+      write.csv(data(), file)
     }
   )
-})
+  
+  # Update plot and summary variable choices
+  observe({
+    if (!is.null(data())) {
+      updateSelectInput(session, "plot_var", choices = names(data()))
+      updateSelectInput(session, "summary_var", choices = names(data()))
+    }
+  })
+  
+  # Plot data
+  observeEvent(input$plot_data, {
+    req(input$plot_var, input$plot_type)
+    plot_var <- input$plot_var
+    plot_type <- input$plot_type
+    
+    output$plot <- renderPlot({
+      ggplot(data(), aes_string(x = plot_var)) +
+        {
+          if (plot_type == "Histogram") geom_histogram() else
+            if (plot_type == "Boxplot") geom_boxplot() else
+              if (plot_type == "Scatterplot") geom_point(aes_string(y = input$summary_var))
+        } +
+        labs(title = paste(plot_type, "of", plot_var), x = plot_var, y = input$summary_var)
+    })
+  })
+  
+  # Contingency table
+  output$contingency_table <- renderDT({
+    req(input$plot_var, input$summary_var)
+    contingency_table <- table(data()[[input$plot_var]], data()[[input$summary_var]])
+    datatable(as.data.frame(contingency_table))
+  })
+  
+  # Numerical summary
+  output$summary <- renderPrint({
+    req(input$plot_var, input$summary_var)
+    summary_data <- data() %>%
+      group_by_at(input$plot_var) %>%
+      summarise(mean = mean(.data[[input$summary_var]], na.rm = TRUE),
+                sd = sd(.data[[input$summary_var]], na.rm = TRUE))
+    print(summary_data)
+  })
+}
