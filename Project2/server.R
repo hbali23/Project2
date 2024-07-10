@@ -164,7 +164,7 @@ server <- function(input, output, session) {
   
   
   
-  # Example function to fetch and plot emission records for multiple vehicle IDs
+  # Function to fetch and plot emission records for multiple vehicle IDs
   plot_emissions_by_vehicle <- function(vehicle_ids) {
     # Initialize an empty list to store data frames
     all_data <- list()
@@ -178,7 +178,6 @@ server <- function(input, output, session) {
       # Store the data frame in the list
       all_data[[as.character(vehicle_id)]] <- emission_data
     }
-    
     # Combine all data frames into one
     combined_data <- bind_rows(all_data)
     
@@ -193,6 +192,32 @@ server <- function(input, output, session) {
       theme_minimal()
   }
   
+  # Function to fetch and plot city MPG over years, colored by fuel type
+  plot_city_mpg_by_vehicle <- function(vehicle_ids) {
+    # Initialize an empty list to store data frames
+    all_data <- list()
+    # Loop through each vehicle ID and retrieve vehicle data
+    for (vehicle_id in vehicle_ids) {
+      # Retrieve vehicle data for the current vehicle ID
+      vehicle_data <- vehicle_record(vehicle_id)
+      # Add vehicle_id column to identify which data belongs to which vehicle
+      vehicle_data <- mutate(vehicle_data, vehicle_id = as.character(vehicle_id))
+      # Store the data frame in the list
+      all_data[[as.character(vehicle_id)]] <- vehicle_data
+    }
+    # Combine all data frames into one
+    combined_data <- bind_rows(all_data)
+    
+    # Plotting city MPG by year, colored by fuel type
+    ggplot(data = combined_data, aes(x = year, y = city08, color = fuelType1)) +
+      geom_line() +
+      labs(title = "City MPG over Years",
+           x = "Year",
+           y = "City MPG",
+           color = "Fuel Type") +
+      scale_color_manual(values = c("Regular" = "red", "Midgrade" = "blue", "Premium" = "green", "Diesel" = "purple")) +
+      theme_minimal()
+  }
   
   # Dynamically create UI elements based on selected function in Data Download tab
   output$year_input <- renderUI({
