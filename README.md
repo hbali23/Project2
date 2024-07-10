@@ -1,8 +1,7 @@
 # Project 2
 
 # Description
-Brief description of the app and its purpose.
-This app allows users to explore the Fuel Economy API, which provides data on vehicle fuel economy.
+This R Shiny app integrates with the FuelEconomy.gov API to retrieve and present vehicle data. Users can explore different aspects of vehicle records, emissions, fuel prices, and user MPG records through intuitive dropdown menus and input fields. It provides functionalities such as data download, subset selection, CSV export, and dynamic visualizations like histograms and contingency tables. The app caters to both analytical and practical needs, offering insights into vehicle attributes and fuel efficiency metrics with interactive features for enhanced user experience and data exploration.
 
 # Required R packages
 library(shiny)

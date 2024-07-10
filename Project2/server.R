@@ -162,6 +162,38 @@ server <- function(input, output, session) {
       theme_minimal()
   }
   
+  
+  
+  # Example function to fetch and plot emission records for multiple vehicle IDs
+  plot_emissions_by_vehicle <- function(vehicle_ids) {
+    # Initialize an empty list to store data frames
+    all_data <- list()
+    
+    # Loop through each vehicle ID and retrieve emissions data
+    for (vehicle_id in vehicle_ids) {
+      # Retrieve emissions data for the current vehicle ID
+      emission_data <- emission_records(vehicle_id)
+      # Add vehicle_id column to identify which data belongs to which vehicle
+      emission_data <- mutate(emission_data, vehicle_id = as.character(vehicle_id))
+      # Store the data frame in the list
+      all_data[[as.character(vehicle_id)]] <- emission_data
+    }
+    
+    # Combine all data frames into one
+    combined_data <- bind_rows(all_data)
+    
+    # Plotting emissions by year and engine ID, faceted by vehicle ID
+    ggplot(data = combined_data, aes(x = year, y = co2TailpipeGpm, color = factor(year))) +
+      geom_line() +
+      labs(title = "Emissions by Year and Engine ID",
+           x = "Year",
+           y = "CO2 Tailpipe GPM",
+           color = "Year") +
+      facet_wrap(~ vehicle_id, scales = "free") +  # Facet by vehicle_id
+      theme_minimal()
+  }
+  
+  
   # Dynamically create UI elements based on selected function in Data Download tab
   output$year_input <- renderUI({
     if (input$download_function %in% c("Vehicle Record", "Emission Records", "Vehicle Options")) {
@@ -181,40 +213,42 @@ server <- function(input, output, session) {
     }
   })
   
-  # Handle data download based on user selection
-  observeEvent(input$submit_download, {
-    data <- switch(input$download_function,
+  # Function to handle data download for vehicle records
+  observeEvent(input$submit_download_vehicle, {
+    data <- switch(input$download_function_vehicle,
                    "Vehicle Record" = {
                      req(input$year, input$make, input$model)
                      vehicle_record(input$year, input$make, input$model)
                    },
                    "Emission Records" = {
-                     req(input$year, input$make, input$model)
-                     emission_records(input$year, input$make, input$model)
-                   },
-                   "Fuel Prices" = {
-                     req(input$fuel_type)
-                     get_fuel_prices(input$fuel_type)
+                     # Handle emission records download here
                    },
                    "Vehicle Options" = {
-                     req(input$year, input$make, input$model)
-                     vehicle_record(input$year, input$make, input$model)
+                     # Handle vehicle options download here
                    },
                    "User MPG Records" = {
-                     req(input$vehicle_id)
-                     user_mpg_records(input$vehicle_id)
+                     # Handle user MPG records download here
                    })
-    output$downloaded_data <- renderTable({
+    output$downloaded_data_vehicle <- renderTable({
       data
     })
-    output$download_csv <- downloadHandler(
+    output$download_csv_vehicle <- downloadHandler(
       filename = function() {
-        paste0(input$download_function, "_data.csv")
+        paste0(input$download_function_vehicle, "_data.csv")
       },
       content = function(file) {
         write.csv(data, file, row.names = FALSE)
       }
     )
+  })
+  
+  # Function to handle fuel price download for data_download2 tab
+  observeEvent(input$submit_fuel_price2, {
+    req(input$fuel_type2)
+    fuel_price_data <- get_fuel_prices(input$fuel_type2)
+    output$fuel_price_output2 <- renderText({
+      paste("Current Price of", input$fuel_type2, ":", fuel_price_data$price)
+    })
   })
   
   # Numerical Summaries UI elements
