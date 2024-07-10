@@ -5,7 +5,6 @@ This R Shiny app integrates with the FuelEconomy.gov API to retrieve and present
 
 # Required R packages
 library(shiny)
-library(shinydashboard)
 library(httr)
 library(jsonlite)
 library(dplyr)
@@ -14,7 +13,7 @@ library(DT)
 library(tibble)
 
 # Install required packages
-install.packages(c("shiny", "shinydashboard", "httr", "jsonlite", "dplyr", "ggplot2", "DT", "tibble"))
+install.packages(c("shiny", "httr", "jsonlite", "dplyr", "ggplot2", "DT", "tibble"))
 
 
 # Run shiny app

@@ -261,3 +261,26 @@ plot_combined_mpg_histogram(vehicle_ids)
 
 
 
+
+
+
+
+
+
+#understanding api
+# get information about businesses
+api_info <- httr::GET("https://www.fueleconomy.gov/ws/rest/vehicle/menu/year") #this url has to follow resources manual on the website  
+str(api_info, max.level = 1)
+
+library(tidyverse)
+api_char <- base::rawToChar(api_info$content)
+api_JSON <- jsonlite::fromJSON(api_char, flatten=TRUE) 
+parsed <- fromJSON(rawToChar(api_info$content))  #click on parsed and click on drop down for item that has data in (this one is named articles) and there you will see the names of the other variables but i think they all start with id and name
+str(parsed)
+article <- as_tibble(parsed$menuItem) #see articles is selected here and is now a dataframe
+
+#removed source from first two columns id and name that had source$ attached to it
+article <- article |> mutate(id=article$source$id,
+                             name=article$source$name) |> select(id, name, everything(), -source)
+article
+
