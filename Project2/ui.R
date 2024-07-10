@@ -33,7 +33,7 @@ ui <- dashboardPage(
               )
       ),
       
-      # Data Download tab content (Assuming you have already implemented this part)
+      # Data Download tab content 
       tabItem(tabName = "data_download",
               h2("Data Download"),
               fluidRow(
@@ -54,24 +54,7 @@ ui <- dashboardPage(
               )
       ),
       
-      
-      # Data Download2 tab content
-      tabItem(tabName = "data_download2",
-              h2("Data Download 2"),
-              fluidRow(
-                column(4,
-                       selectInput("fuel_type2",
-                                   "Select Fuel Type:",
-                                   choices = c("Regular", "Midgrade", "Premium")),
-                       actionButton("submit_fuel_price2", "Get Fuel Price")
-                ),
-                column(8,
-                       verbatimTextOutput("fuel_price_output2")
-                )
-              )
-      ),
-      
-      
+
       
       # Data Exploration tab content
       tabItem(tabName = "data_exploration",

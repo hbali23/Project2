@@ -8,6 +8,28 @@ library(ggplot2)  # For plotting
 # Define server logic
 server <- function(input, output, session) {
   
+  # Function to retrieve and process data for a gas vehicle from FuelEconomy.gov API
+  vehicle_record_segment <- function(vehicle_id) {
+    # Construct the URL
+    url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/", vehicle_id)
+    # Make the GET request
+    api_info <- httr::GET(url)
+    # Convert the raw content to character
+    api_char <- base::rawToChar(api_info$content)
+    # Parse the JSON content
+    parsed <- jsonlite::fromJSON(api_char, flatten = TRUE)
+    # Remove the emissionsList element if it is NULL
+    parsed <- parsed[!sapply(parsed, is.null)]
+    # Convert the parsed data to a tibble
+    vehicle_data <- as_tibble(parsed)
+    # Select the desired columns
+    selected_data <- vehicle_data %>%
+      select(comb08, fuelType1) %>%
+      mutate(across(comb08, as.numeric)) # Convert comb08 to numeric
+    # Return the selected data
+    return(selected_data)
+  }
+  
   # Function to retrieve and process vehicle record data
   vehicle_record <- function(year, make, model) {
     make <- URLencode(make)
@@ -66,7 +88,6 @@ server <- function(input, output, session) {
     if (!is.numeric(vehicle_id) || vehicle_id %% 1 != 0) {
       stop("ERROR: Please provide a valid vehicle ID as an integer.")
     }
-    
     url <- paste0("https://www.fueleconomy.gov/ws/rest/ympg/shared/ympgDriverVehicle/", vehicle_id)
     api_info <- httr::GET(url)
     api_char <- base::rawToChar(api_info$content)
@@ -76,27 +97,6 @@ server <- function(input, output, session) {
     return(user_mpg_data)
   }
   
-  # Function to retrieve and process data for a gas vehicle from FuelEconomy.gov API
-  vehicle_record_segment <- function(vehicle_id) {
-    # Construct the URL
-    url <- paste0("https://www.fueleconomy.gov/ws/rest/vehicle/", vehicle_id)
-    # Make the GET request
-    api_info <- httr::GET(url)
-    # Convert the raw content to character
-    api_char <- base::rawToChar(api_info$content)
-    # Parse the JSON content
-    parsed <- jsonlite::fromJSON(api_char, flatten = TRUE)
-    # Remove the emissionsList element if it is NULL
-    parsed <- parsed[!sapply(parsed, is.null)]
-    # Convert the parsed data to a tibble
-    vehicle_data <- as_tibble(parsed)
-    # Select the desired columns
-    selected_data <- vehicle_data %>%
-      select(comb08, fuelType1) %>%
-      mutate(across(comb08, as.numeric)) # Convert comb08 to numeric
-    # Return the selected data
-    return(selected_data)
-  }
   
   # Function to fetch vehicle data and compute average MPG
   calculate_average_mpg <- function(vehicle_id) {
@@ -191,6 +191,7 @@ server <- function(input, output, session) {
       facet_wrap(~ vehicle_id, scales = "free") +  # Facet by vehicle_id
       theme_minimal()
   }
+  
   
   # Function to fetch and plot city MPG over years, colored by fuel type
   plot_city_mpg_by_vehicle <- function(vehicle_ids) {
