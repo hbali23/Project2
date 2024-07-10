@@ -8,7 +8,8 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("About", tabName = "about"),
       menuItem("Data Download", tabName = "data_download"),
-      menuItem("Data Exploration", tabName = "data_exploration")
+      menuItem("Data Exploration", tabName = "data_exploration"),
+      menuItem("Numerical Summaries", tabName = "numerical_summaries")
     )
   ),
   dashboardBody(
@@ -19,7 +20,7 @@ ui <- dashboardPage(
               fluidRow(
                 column(6,
                        tags$p("This app provides access to vehicle data from FuelEconomy.gov."),
-                       tags$p("Data sources include vehicle records, emissions records, and fuel prices."),
+                       tags$p("Data sources include vehicle records, emissions records, fuel prices, and user MPG records."),
                        tags$p("Each tab serves a different purpose in exploring and downloading this data.")
                 ),
                 column(6,
@@ -28,14 +29,14 @@ ui <- dashboardPage(
               )
       ),
       
-      # Data Download tab content
+      # Data Download tab content (Assuming you have already implemented this part)
       tabItem(tabName = "data_download",
               h2("Data Download"),
               fluidRow(
                 column(4,
                        selectInput("download_function",
                                    "Select Function:",
-                                   choices = c("Vehicle Record", "Emission Records", "Fuel Prices", "Vehicle Options"),
+                                   choices = c("Vehicle Record", "Emission Records", "Fuel Prices", "Vehicle Options", "User MPG Records"),
                                    selected = "Vehicle Record"),
                        uiOutput("year_input"),
                        uiOutput("make_input"),
@@ -63,7 +64,36 @@ ui <- dashboardPage(
                        plotOutput("exploration_plot")
                 )
               )
+      ),
+      
+      # Numerical Summaries tab content
+      tabItem(tabName = "numerical_summaries",
+              h2("Numerical Summaries"),
+              fluidRow(
+                column(4,
+                       selectInput("summary_function",
+                                   "Select Dataset:",
+                                   choices = c("Vehicle Record", "Emission Records", "Fuel Prices", "Vehicle Options", "User MPG Records"),
+                                   selected = "Vehicle Record"),
+                       uiOutput("categorical_var"),
+                       uiOutput("quantitative_var"),
+                       actionButton("submit_summary", "Generate Summary")
+                ),
+                column(8,
+                       tableOutput("summary_table")
+                )
+              ),
+              fluidRow(
+                column(4,
+                       textInput("vehicle_id_summary", "Vehicle ID:")
+                ),
+                column(8,
+                       tableOutput("average_mpg_table")
+                )
+              )
       )
     )
   )
 )
+
+

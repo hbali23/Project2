@@ -304,3 +304,24 @@ shinyUI(fluidPage(
     )
   )
 ))
+
+
+
+
+# Assuming vehicle_record function is already defined
+
+# Fetch data for a specific vehicle ID
+vehicle_id <- 12345  # Example vehicle ID
+vehicle_data <- vehicle_record(vehicle_id)
+# View the structure of the fetched data
+str(vehicle_data)
+# Example usage: after function is ran
+vehicle_id <- 100  # Replace with a valid vehicle ID
+vehicle_data <- vehicle_record(vehicle_id)
+mpg_table <- create_mpg_table(vehicle_data)
+print(mpg_table)
+
+
+
+
+
